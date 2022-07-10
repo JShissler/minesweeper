@@ -276,19 +276,6 @@ max_height = 24
 min_width = 6
 min_height = 6
 
-# test = Board(9, 9, 'Easy')
-# print(test.playing_board_state)
-# print(chr(ord("A")))
-# test.draw_board(test.starting_board_state)
-# test.draw_board(test.playing_board_state)
-# test.draw_board(test.display_board_state)
-# h = input()
-# w = input()
-# test.update_board(int(h), int(w), False)
-# test.draw_board(test.playing_board_state)
-# test.draw_board(test.display_board_state)
-# test.draw_board(test.starting_board_state)
-
 if __name__ == '__main__':
     playing = True
     while playing:
