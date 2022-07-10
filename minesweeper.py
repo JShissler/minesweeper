@@ -226,13 +226,23 @@ class Player:
         while True:
             clean_data = True
             choice = input(f"Please input the square you wish to check (E.g. A5). You may mark a square by putting an M at the end (E.g. A5M): ")
-            if choice[-1] == 'M':
+            if choice[-1].upper() == 'M':
                 row_choice = choice[0]
                 column_choice = int(choice[1:-1]) - 1
                 marking = True
             else:
                 row_choice = choice[0]
-                column_choice = int(choice[1:]) - 1
+                column_choice = choice[1:]
+                column_choice_clean = True
+                valid_choices = "0123456789"
+                for i in column_choice:
+                    if i not in valid_choices:
+                        column_choice_clean = False
+                if column_choice_clean:
+                    column_choice = int(column_choice) - 1
+                else:
+                    print("It appears that you entered a choice that does not match the RowletterColumnnumber format. Please try again.")
+                    clean_data = False
             # Convert and confirm that data is usable
             # Make sure the row choice is a valid and existing letter
             if type(row_choice) == type('String'):
@@ -241,20 +251,24 @@ class Player:
                 if row_choice in row_list:
                     row = row_list.index(row_choice)
                 else:
-                    print("It appears that you entered a letter row outside of the ones on the board.  Please try again.")
+                    if clean_data:
+                        print("It appears that you entered a letter row outside of the ones on the board. Please try again.")
                     clean_data = False
             else:
-                print("It appears that you did not enter a letter row as your first character. Please try again.")
+                if clean_data:
+                    print("It appears that you did not enter a letter row as your first character. Please try again.")
                 clean_data = False
             # Make sure the column choice is a valid and existing row
             if type(column_choice) == type(1):
                 if column_choice < 0 or column_choice > width:
-                    print("It appears that you entered a column number outside of the ones on the board.  Please try again.")
+                    if clean_data:
+                        print("It appears that you entered a column number outside of the ones on the board. Please try again.")
                     clean_data = False
                 else:
                     column = column_choice
             else:
-                print("It appears that you did not enter a number for your column row.  Please try again.")
+                if clean_data:
+                    print("It appears that you did not enter a number for your column row. Please try again.")
                 clean_data = False
             # Return data if it is usable
             if clean_data:
