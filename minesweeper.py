@@ -3,7 +3,6 @@ from copy import deepcopy
 from string import ascii_uppercase
 
 class Board:
-
     def __init__(self, width, height, difficulty):
         self.starting_board_state = []
         self.playing_board_state = []
@@ -73,26 +72,23 @@ class Board:
     # Generates the playing board based on the mines in the starting board
     def convert_board_starting_to_playing(self):
         self.playing_board_state = []
-        for height in range(self.height):
+        for cycle_height in range(self.height):
             playing_row = []
-            for width in range(self.width):
+            for cycle_width in range(self.width):
                 converted_square = ''
                 count = 0
                 # Check if square is a mine
-                if self.starting_board_state[height][width] == 0:
+                if self.starting_board_state[cycle_height][cycle_width] == 0:
                     converted_square = 'M'
                 # Calculate surrounding mines if the square isn't a mines
                 else:
                     for step in range(-1,2):
                         for square in range(-1,2):
-                            try:
-                                height_index = height + step
-                                width_index = width + square
-                                if height_index >= 0 and width_index >= 0:
-                                    if self.starting_board_state[height_index][width_index] == 0:
-                                        count += 1
-                            except IndexError:
-                                pass
+                            height_index = cycle_height + step
+                            width_index = cycle_width + square
+                            if height_index >= 0 and width_index >= 0 and height_index < self.height and width_index < self.width:
+                                if self.starting_board_state[height_index][width_index] == 0:
+                                    count += 1
                     converted_square = str(count)
                 playing_row.append(converted_square)
             self.playing_board_state.append(playing_row)
@@ -173,18 +169,15 @@ class Board:
                 self.display_board_state[height][width] = self.playing_board_state[height][width]
                 while True:
                     temp_board = deepcopy(self.display_board_state)
-                    for cylce_height in range(self.height):
+                    for cycle_height in range(self.height):
                         for cycle_width in range(self.width):
-                            if self.display_board_state[cylce_height][cycle_width] == '0':
+                            if self.display_board_state[cycle_height][cycle_width] == '0':
                                 for step in range(-1,2):
                                     for square in range(-1,2):
-                                        try:
-                                            height_index = cylce_height + step
-                                            width_index = cycle_width + square
-                                            if height_index >= 0 and width_index >= 0:
-                                                self.display_board_state[height_index][width_index] = self.playing_board_state[height_index][width_index]
-                                        except IndexError:
-                                            pass
+                                        height_index = cycle_height + step
+                                        width_index = cycle_width + square
+                                        if height_index >= 0 and width_index >= 0 and height_index < self.height and width_index < self.width:
+                                            self.display_board_state[height_index][width_index] = self.playing_board_state[height_index][width_index]
                     if temp_board == self.display_board_state:
                         break
             # Return False for the game no longer being active and True for victory
@@ -209,11 +202,11 @@ class Player:
         while True:
             choice = input(f"Please enter number of desired difficulty: 1. Easy - 2. Medium - 3. Expert: ")
             choice = choice.lower()
-            if choice == '1' or choice == 'easy':
+            if choice in ['1', 'easy']:
                 return 'Easy'
-            elif choice == '2' or choice == 'medium':
+            elif choice in ['2', 'medium']:
                 return 'Medium'
-            elif choice == '3' or choice == 'expert':
+            elif choice in ['3', 'expert']:
                 return 'Expert'
             else:
                 print("Unknown choice. Please try choosing a difficulty again.")
@@ -222,19 +215,27 @@ class Player:
         row = 0
         column = 0
         marking = False
+        valid_choices = "0123456789"
         # Take input coordinates and if the square should be marked or not
         while True:
             clean_data = True
-            choice = input(f"Please input the square you wish to check (E.g. A5). You may mark a square by putting an M at the end (E.g. A5M): ")
+            column_choice_clean = True
+            choice = input(f"Please input the square you wish to check (E.g. A5). You may mark a square by putting an M at the end (E.g. A5M): ").strip()
             if choice[-1].upper() == 'M':
                 row_choice = choice[0]
-                column_choice = int(choice[1:-1]) - 1
+                column_choice = choice[1:-1]
+                for i in column_choice:
+                    if i not in valid_choices:
+                        column_choice_clean = False
+                if column_choice_clean:
+                    column_choice = int(column_choice) - 1
+                else:
+                    print("It appears that you entered a choice that does not match the RowletterColumnnumber format. Please try again.")
+                    clean_data = False
                 marking = True
             else:
                 row_choice = choice[0]
                 column_choice = choice[1:]
-                column_choice_clean = True
-                valid_choices = "0123456789"
                 for i in column_choice:
                     if i not in valid_choices:
                         column_choice_clean = False
@@ -245,15 +246,14 @@ class Player:
                     clean_data = False
             # Convert and confirm that data is usable
             # Make sure the row choice is a valid and existing letter
-            if type(row_choice) == type('String'):
-                row_list = ascii_uppercase[0:height]
-                row_choice = row_choice.upper()
-                if row_choice in row_list:
-                    row = row_list.index(row_choice)
-                else:
-                    if clean_data:
-                        print("It appears that you entered a letter row outside of the ones on the board. Please try again.")
-                    clean_data = False
+            row_list = ascii_uppercase[0:height]
+            row_choice = row_choice.upper()
+            if row_choice in row_list:
+                row = row_list.index(row_choice)
+            elif row_choice in ascii_uppercase:
+                if clean_data:
+                    print("It appears that you entered a letter row outside of the ones on the board. Please try again.")
+                clean_data = False
             else:
                 if clean_data:
                     print("It appears that you did not enter a letter row as your first character. Please try again.")
@@ -266,10 +266,6 @@ class Player:
                     clean_data = False
                 else:
                     column = column_choice
-            else:
-                if clean_data:
-                    print("It appears that you did not enter a number for your column row. Please try again.")
-                clean_data = False
             # Return data if it is usable
             if clean_data:
                 return [row, column, marking]
@@ -277,9 +273,9 @@ class Player:
     def play_again():
         choice = input("Would you like to play again? 1. Yes - 2. No: ")
         choice = choice.lower()
-        if choice == '1' or choice == 'y' or choice == 'yes':
+        if choice in ['1', 'y', 'yes']:
             return True
-        elif choice == '2' or choice == 'n' or choice == 'no':
+        elif choice in ['2', 'n', 'no']:
             return False
         else:
             print("Unknown choice. Please try entering 1 for Yes and 2 for No again.")
@@ -313,7 +309,7 @@ if __name__ == '__main__':
             game_active = result[0]
         
         did_win = result[1]
-        if did_win == True:
+        if did_win:
             player_board.draw_board(player_board.display_board_state)
             print("Congratulations! You won!")
         else:
